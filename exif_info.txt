@@ -1,0 +1,30 @@
+Drive Mode:
+Byte #1 - Mode: 
+	0 = Single Shot
+	1 = Continuous Shooting
+	2 = Exposure Bracketing
+	3 = White Balance Bracketing
+	4 = Exposure+WB Bracketing
+	5 = ... Bracketing -> see Byte #3
+
+Byte #2 - Shot Number
+
+Byte #3 - Mode Bits:
+	Bit 0|0x01|1  = 'AE'
+	Bit 1|0x02|2  = 'WB'
+	Bit 2|0x04|4  = 'FL'
+	Bit 3|0x08|8  = 'MF'
+	Bit 4|0x10|16 = 'ISO'
+	Bit 5|0x20|32 = 'AE Auto'
+	Bit 6|0x40|64 = 'Focus'
+
+Focus Bracketing, Shot 8; Electronic shutter
+DriveMode': '5 8 64 0 4'
+
+Single Shot; Electronic shutter
+DriveMode': '0 0 0 0 4'
+
+Continuous Shooting, Shot 10
+DriveMode': '1 10 0 0 0'
+
+
