@@ -4,13 +4,33 @@ import argparse
 import re
 import exiftool
 import os
+import fnmatch
 import sys
+import re
+
 from collections import defaultdict
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, IntEnum
 
 
-class BrktMode(Enum):
+class DriveMode(IntEnum):
+    SingleShot = 0
+    ContinuousShooting = 1
+    ExposureBracketing = 2
+    WhiteBalanceBracketing = 3
+    ExposureWBBracketing = 4
+    Bracketing = 5
+
+
+class DriveModeBytes(IntEnum):
+    Mode = 0
+    ShotNum = 1
+    ModeBits = 2
+    ShutterMode = 4
+
+
+class BrktMode(IntEnum):
+    NONE = 0x00
     AE = 0x01
     WB = 0x02
     FL = 0x04
@@ -20,9 +40,26 @@ class BrktMode(Enum):
     FOC = 0x40
 
 
+class StackedImage(Enum):
+    NO = '0 0'
+    LiveComposite = '1 *'
+    LiveTimeBulb = '4 *'
+    ND2 = '3 2'
+    ND4 = '3 4'
+    ND8 = '3 8'
+    ND16 = '3 16'
+    ND32 = '3 32'
+    HDR1 = '5 4'
+    HDR2 = '6 4'
+    TripodHR = '8 8'
+    FocusStacked = '9 *'
+    HandheldHR = '11 16'
+
+
 @dataclass
 class BrktSequenceEntry:
-    brktType: BrktMode
+    brktMode: BrktMode
+    stackedImage: StackedImage
     num: int
     file: list()
 
@@ -52,58 +89,80 @@ def parse_command_line_arguments(argv):
     return args
 
 
+def groupBracketing(metadata):
+    aeaBrkt = list()
+    focBrkt = list()
+    sequence = list()
+    stackedImage = StackedImage.NO
+
+    for e in metadata:
+        # extract drive-mode bytes
+        driveModeBytes = [int(k) for k in e["MakerNotes:DriveMode"].split(" ")]
+
+        # extract stacked-image type
+        for si in StackedImage:
+            match = bool(re.match(si.value, e["MakerNotes:StackedImage"]))
+            if match:
+                stackedImage = si
+                break
+
+        # set stacked-image type
+        if stackedImage == StackedImage.FocusStacked:
+            sequence.append(BrktSequenceEntry(
+                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]), stackedImage, driveModeBytes[DriveModeBytes.ShotNum], e))
+
+        # check if image is part of a bracketing sequence
+        if driveModeBytes[DriveModeBytes.Mode] == DriveMode.Bracketing:
+            entry = BrktSequenceEntry(
+                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]), stackedImage, driveModeBytes[DriveModeBytes.ShotNum], e)
+
+            if entry.num == 1 and \
+               len(sequence) > 0 and \
+               entry.file["File:FileName"].split(".")[0] != sequence[0].file["File:FileName"].split(".")[0]:
+
+                if sequence[0].brktMode == BrktMode.AEA:
+                    aeaBrkt.append(sequence)
+                if sequence[0].brktMode == BrktMode.FOC:
+                    focBrkt.append(sequence)
+                sequence = list()
+
+            if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
+                sequence.append(entry)
+
+    # Needs to be done to add the last found sequence
+    if len(sequence) > 0:
+        if sequence[0].brktMode == BrktMode.AEA:
+            aeaBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.FOC:
+            focBrkt.append(sequence)
+
+    seqCnt = 0
+    for gr in aeaBrkt:
+        seqCnt += 1
+        print(f'AEA #{seqCnt}')
+        for el in gr:
+            print(f'{el.brktMode.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
+        print('')
+
+    seqCnt = 0
+    for gr in focBrkt:
+        seqCnt += 1
+        print(f'FOC #{seqCnt}')
+        for el in gr:
+            print(f'{el.brktMode.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
+        print('')
+
+
 def main_build(args, params):
     with exiftool.ExifTool() as et:
         # SourceFile
         # File:Filename
         # MakerNotes:DriveMode
-        metadata = et.execute_json('-filename', '-DriveMode', '-FileType',
+        metadata = et.execute_json('-filename', '-DriveMode', '-FileType', '-StackedImage',
                                    'C:\\Users\\phst\\Documents\\_REPOS\\Testpics\\')
         # metadata = et.execute_json('-filename', '-DriveMode', args.path)
 
-        aeaBrkt = list()
-        focBrkt = list()
-        sequence = list()
-
-        for e in metadata:
-            driveModeArr = [int(k) for k in e["MakerNotes:DriveMode"].split(" ")]
-            if driveModeArr[0] == 5:
-                entry = BrktSequenceEntry(BrktMode(driveModeArr[2]), driveModeArr[1], e)
-
-                # and  != sequence[0].file["File:FileName"].split(".")[0]
-                if entry.num == 1 and len(sequence) > 0:
-                    if entry.file["File:FileName"].split(".")[0] != sequence[0].file["File:FileName"].split(".")[0]:
-                        if sequence[0].brktType == BrktMode.AEA:
-                            aeaBrkt.append(sequence)
-                        if sequence[0].brktType == BrktMode.FOC:
-                            focBrkt.append(sequence)
-                        sequence = list()
-
-                if entry.brktType == BrktMode.AEA or entry.brktType == BrktMode.FOC:
-                    sequence.append(entry)
-
-        # Needs to be done to add the last found sequence
-        if len(sequence) > 0:
-            if sequence[0].brktType == BrktMode.AEA:
-                aeaBrkt.append(sequence)
-            if sequence[0].brktType == BrktMode.FOC:
-                focBrkt.append(sequence)
-
-        seqCnt = 0
-        for gr in aeaBrkt:
-            seqCnt += 1
-            print(f'AEA #{seqCnt}')
-            for el in gr:
-                print(f'{el.brktType.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
-            print('')
-
-        seqCnt = 0
-        for gr in focBrkt:
-            seqCnt += 1
-            print(f'FOC #{seqCnt}')
-            for el in gr:
-                print(f'{el.brktType.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
-            print('')
+        groupBracketing(metadata)
 
 
 def main(argv):
