@@ -58,6 +58,7 @@ class StackedImage(Enum):
 
 @dataclass
 class BrktSequenceEntry:
+    driveMode: DriveMode
     brktMode: BrktMode
     stackedImage: StackedImage
     num: int
@@ -109,12 +110,18 @@ def groupBracketing(metadata):
         # set stacked-image type
         if stackedImage == StackedImage.FocusStacked:
             sequence.append(BrktSequenceEntry(
-                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]), stackedImage, driveModeBytes[DriveModeBytes.ShotNum], e))
+                DriveMode(driveModeBytes[DriveModeBytes.Mode]),
+                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
+                stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
+                e))
 
         # check if image is part of a bracketing sequence
         if driveModeBytes[DriveModeBytes.Mode] == DriveMode.Bracketing:
             entry = BrktSequenceEntry(
-                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]), stackedImage, driveModeBytes[DriveModeBytes.ShotNum], e)
+                DriveMode(driveModeBytes[DriveModeBytes.Mode]),
+                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
+                stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
+                e)
 
             if entry.num == 1 and \
                len(sequence) > 0 and \
@@ -129,6 +136,8 @@ def groupBracketing(metadata):
             if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
                 sequence.append(entry)
 
+    return aeaBrkt, focBrkt
+
     # Needs to be done to add the last found sequence
     if len(sequence) > 0:
         if sequence[0].brktMode == BrktMode.AEA:
@@ -136,22 +145,8 @@ def groupBracketing(metadata):
         if sequence[0].brktMode == BrktMode.FOC:
             focBrkt.append(sequence)
 
-    seqCnt = 0
-    for gr in aeaBrkt:
-        seqCnt += 1
-        print(f'AEA #{seqCnt}')
-        for el in gr:
-            print(f'{el.brktMode.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
-        print('')
-
-    seqCnt = 0
-    for gr in focBrkt:
-        seqCnt += 1
-        print(f'FOC #{seqCnt}')
-        for el in gr:
-            print(f'{el.brktMode.name}: {el.file["File:FileName"]}: {el.file["MakerNotes:DriveMode"]}')
-        print('')
-
+def moveBracketing(moveList):
+    print('Move Bracketing')
 
 def main_build(args, params):
     with exiftool.ExifTool() as et:
@@ -162,7 +157,26 @@ def main_build(args, params):
                                    'C:\\Users\\phst\\Documents\\_REPOS\\Testpics\\')
         # metadata = et.execute_json('-filename', '-DriveMode', args.path)
 
-        groupBracketing(metadata)
+        aeaBrkt, focBrkt = groupBracketing(metadata)
+
+        seqCnt = 0
+        for gr in aeaBrkt:
+            seqCnt += 1
+            print(f'AEA #{seqCnt}')
+            for el in gr:
+                print(f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+            print('')
+
+        seqCnt = 0
+        for gr in focBrkt:
+            seqCnt += 1
+            print(f'FOC #{seqCnt}')
+            for el in gr:
+                print(f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+            print('')
+
+        # move aea-bracketing
+        moveBracketing(aeaBrkt)
 
 
 def main(argv):
