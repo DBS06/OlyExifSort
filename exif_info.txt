@@ -28,3 +28,5 @@ Continuous Shooting, Shot 10
 DriveMode': '1 10 0 0 0'
 
 
+Focus-stacked (15 images)metadata[0]['MakerNotes:StackedImage']
+metadata[0]['MakerNotes:StackedImage']

@@ -145,18 +145,34 @@ def groupBracketing(metadata):
         if sequence[0].brktMode == BrktMode.FOC:
             focBrkt.append(sequence)
 
+
 def moveBracketing(moveList):
     print('Move Bracketing')
+
 
 def main_build(args, params):
     with exiftool.ExifTool() as et:
         # SourceFile
         # File:Filename
         # MakerNotes:DriveMode
-        metadata = et.execute_json('-filename', '-DriveMode', '-FileType', '-StackedImage',
-                                   'C:\\Users\\phst\\Documents\\_REPOS\\Testpics\\')
-        # metadata = et.execute_json('-filename', '-DriveMode', args.path)
 
+        # args.path = 'C:\\Users\\phst\\Documents\\_REPOS\TestPics2'
+
+        if not os.path.exists(args.path):
+            print(f'given path "{args.path}" is invalid!')
+            print(f'aborting!')
+
+        numOfFiles = next(os.walk(args.path))[2]
+        print(f'Number of Files: {len(numOfFiles)}')
+
+        print(f'gather image EXIF data...')
+        print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
+
+        metadata = et.execute_json('-filename', '-DriveMode', '-FileType', '-StackedImage', args.path)
+
+        print(f'{metadata}')
+
+        print(f'start grouping images...')
         aeaBrkt, focBrkt = groupBracketing(metadata)
 
         seqCnt = 0
