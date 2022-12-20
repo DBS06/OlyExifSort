@@ -269,8 +269,6 @@ def main_build(args, params):
         # File:Filename
         # MakerNotes:DriveMode
 
-        # args.path = 'C:\\Users\\phst\\Documents\\_REPOS\TestPics2'
-
         if not os.path.exists(args.path):
             print(f'given path "{args.path}" is invalid!')
             print(f'aborting!')
