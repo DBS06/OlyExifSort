@@ -200,7 +200,7 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
-- clone repository
+- clone or download repository
 - execute: `pip install -r requirements.txt`
 - add `[...]/bin/exiftool.exe` to System-Path 
 
