@@ -138,14 +138,14 @@ def groupBracketing(metadata):
             if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
                 sequence.append(entry)
 
-    return aeaBrkt, focBrkt
-
     # Needs to be done to add the last found sequence
     if len(sequence) > 0:
         if sequence[0].brktMode == BrktMode.AEA:
             aeaBrkt.append(sequence)
         if sequence[0].brktMode == BrktMode.FOC:
             focBrkt.append(sequence)
+
+    return aeaBrkt, focBrkt
 
 
 def moveBracketing(moveList, path, mode):
@@ -156,12 +156,13 @@ def moveBracketing(moveList, path, mode):
     if mode == BrktMode.AEA:
         mainDirLabel = "HDRs"
         subDirLabel = "HDR"
+        print("Move AEA Bracketing Sequences")
 
     if mode == BrktMode.FOC:
         mainDirLabel = "FOCs"
         subDirLabel = "FOC"
+        print("Move AEA Bracketing Sequences")
 
-    print('Move Bracketing')
     mainDirName = os.path.basename(path)
     targetMainDirName = mainDirName + "_" + mainDirLabel
     targetMainDirPath = os.path.join(path, targetMainDirName)
@@ -171,7 +172,7 @@ def moveBracketing(moveList, path, mode):
     moveBrktCountOffset = 0
 
     if os.path.exists(targetMainDirPath):
-        print("preexisting folder '" + targetMainDirName + "' found!")
+        print("preexisting folder '" + targetMainDirName + "' found")
         existingBrktFolders = fnmatch.filter(
             os.listdir(targetMainDirPath), subDirNameMask + '*')
         if (len(existingBrktFolders) > 0):
@@ -194,30 +195,7 @@ def moveBracketing(moveList, path, mode):
             targetDirPath = os.path.join(targetMainDirPath, dirname)
             pathExists = os.path.exists(targetDirPath)
 
-        if mode == BrktMode.AEA:
-            for img in seq:
-                sourcePath = img.file["SourceFile"]
-                targetPath = os.path.join(
-                    targetDirPath, img.file["File:FileName"])
-
-                fileEnding = pathlib.Path(img.file["File:FileName"]).suffix
-
-                # Create copy path for the first image from the HDR-Sequence
-                # -> the script copies the first image from the HDR-Sequence to the HDR-Main-Folder and appends the folder name to the file name
-                # -> makes it easier to look through the HDR-Sequences and to identify which folder has the remaining images
-                targetPathCopy = "%s_%s_%03d%s" % (os.path.join(targetMainDirPath, img.file["File:FileName"].replace(
-                    fileEnding, "")), subDirLabel, moveBrktCount + moveBrktCountOffset, fileEnding)
-
-                # if target directory does not exists create it and copy the first image from the HDR-Sequence
-                if not os.path.exists(targetDirPath):
-                    print("Makedir: %s" % (dirname))
-                    os.makedirs(targetDirPath)
-                    shutil.copy2(sourcePath, targetPathCopy)
-
-                # Move the HDR-Sequence to the folder and inform the user about it
-                print("Move: " + img.file["File:FileName"])
-                # move image to target directory
-                shutil.move(sourcePath, targetPath)
+        isLastImageStacked = False
 
         if mode == BrktMode.FOC:
             isLastImageStacked = seq[-1].stackedImage.name == "FocusStacked"
@@ -236,29 +214,31 @@ def moveBracketing(moveList, path, mode):
                 os.makedirs(targetDirPath)
                 shutil.copy2(sourcePath, targetPathCopy)
 
-            for img in seq:
-                sourcePath = img.file["SourceFile"]
-                targetPath = os.path.join(
-                    targetDirPath, img.file["File:FileName"])
+        for img in seq:
+            sourcePath = img.file["SourceFile"]
+            targetPath = os.path.join(
+                targetDirPath, img.file["File:FileName"])
 
-                if not isLastImageStacked:
-                    # Create copy path for the first image from the HDR-Sequence
-                    # -> the script copies the first image from the HDR-Sequence to the HDR-Main-Folder and appends the folder name to the file name
-                    # -> makes it easier to look through the HDR-Sequences and to identify which folder has the remaining images
-                    fileEnding = pathlib.Path(img.file["File:FileName"]).suffix
-                    targetPathCopy = "%s_%s_%03d%s" % (os.path.join(targetMainDirPath, img.file["File:FileName"].replace(
-                        fileEnding, "")), subDirLabel, moveBrktCount + moveBrktCountOffset, fileEnding)
+            if not isLastImageStacked:
+                fileEnding = pathlib.Path(img.file["File:FileName"]).suffix
+                # Create copy path for the first image from the Sequence
+                # -> the script copies the first image from the Sequence to the HDR/FOC-Main-Folder and appends the folder name to the file name
+                # -> makes it easier to look through the Sequences and to identify which folder has the remaining images from the sequence
+                targetPathCopy = "%s_%s_%03d%s" % (os.path.join(targetMainDirPath, img.file["File:FileName"].replace(
+                    fileEnding, "")), subDirLabel, moveBrktCount + moveBrktCountOffset, fileEnding)
 
-                    # if target directory does not exists create it and copy the first image from the HDR-Sequence
-                    if not os.path.exists(targetDirPath):
-                        print("Makedir: %s" % (dirname))
-                        os.makedirs(targetDirPath)
-                        shutil.copy2(sourcePath, targetPathCopy)
+                # if target directory does not exists create it and copy the first image from the HDR-Sequence
+                if not os.path.exists(targetDirPath):
+                    print("Makedir: %s" % (dirname))
+                    os.makedirs(targetDirPath)
+                    shutil.copy2(sourcePath, targetPathCopy)
 
-                # Move the HDR-Sequence to the folder and inform the user about it
-                print("Move: " + img.file["File:FileName"])
-                # move image to target directory
-                shutil.move(sourcePath, targetPath)
+                isLastImageStacked = True
+
+            # Move the Sequence to the folder and inform the user about it
+            print("Move: " + img.file["File:FileName"])
+            # move image to target directory
+            shutil.move(sourcePath, targetPath)
 
         print(" ")
 
@@ -275,38 +255,49 @@ def main_build(args, params):
 
         numOfFiles = next(os.walk(args.path))[2]
         print(f'Number of Files: {len(numOfFiles)}')
-
-        print(f'gather image EXIF data...')
+        print(f'scanning image EXIF-Data...')
         print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
 
         metadata = et.execute_json(
             '-filename', '-DriveMode', '-FileType', '-StackedImage', args.path)
 
+        print(f'scanning image EXIF-Data finished!')
+
         # print(f'{metadata}')
 
-        print(f'start grouping images...')
-        aeaBrkt, focBrkt = groupBracketing(metadata)
+        if len(metadata) == 0:
+            print(f'no images found!')
+        else:
+            print(f'start grouping images to sequences...')
 
-        seqCnt = 0
-        for gr in aeaBrkt:
-            seqCnt += 1
-            print(f'AEA #{seqCnt}')
-            for el in gr:
-                print(
-                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-            print('')
+            aeaBrkt, focBrkt = groupBracketing(metadata)
 
-        seqCnt = 0
-        for gr in focBrkt:
-            seqCnt += 1
-            print(f'FOC #{seqCnt}')
-            for el in gr:
-                print(
-                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-            print('')
+            print(f'HDR sequences found: ' + str(len(aeaBrkt)))
+            print(f'FOC sequences found: ' + str(len(focBrkt)))
 
-        moveBracketing(aeaBrkt, args.path, BrktMode.AEA)
-        moveBracketing(focBrkt, args.path, BrktMode.FOC)
+            seqCnt = 0
+            for gr in aeaBrkt:
+                seqCnt += 1
+                print(f'AEA #{seqCnt}')
+                for el in gr:
+                    print(
+                        f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                print('')
+
+            seqCnt = 0
+            for gr in focBrkt:
+                seqCnt += 1
+                print(f'FOC #{seqCnt}')
+                for el in gr:
+                    print(
+                        f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                print('')
+
+            if len(aeaBrkt) > 0:
+                moveBracketing(aeaBrkt, args.path, BrktMode.AEA)
+
+            if len(focBrkt) > 0:
+                moveBracketing(focBrkt, args.path, BrktMode.FOC)
 
 
 def main(argv):
