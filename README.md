@@ -1,17 +1,17 @@
 # OlyExifSort
 
-This Script detect and sorts images which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera.
+This Script detects and sorts images which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera.
 
 ## What does this script do
 
-This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the images based onto the bracketing sequences from AEA- and FOC-Mode.<br>
+This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the images based on the bracketing sequences from AEA- and FOC-Mode.<br>
 **Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes!**<br>
-I never used the rest of the Bracketing-Modes, if someone wants to use/sort other modes, pls write an issue and provide example images.<br>
-After the search is completed the scripts starts to move the images to specific folders. You can see an example here:
+I never used the rest of the Bracketing-Modes, if someone wants to use/sort other modes, pls write an issue and provide example images, or create a pull-request.<br>
+After the search is completed, the scripts starts to move the images to specific folders. You can see an example here:
 
 ## Before:
 
-All images which you want to be sorted, are in the same folder. It doesn't matter if there are images inside which belong not to a sequence.
+All images, which should to be sorted, are in the same folder. It doesn't matter if there are images, which do not belong to a AEA- or FOC-Sequence.
 ```
 TestPics:
     IMGA2445.ORF
@@ -45,7 +45,7 @@ The images which do not belong to a sequence are still in the main folder.<br>
 All images which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
 All images which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
 There you can see preview-images which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`.<br>
-In case of FOC-Bracketing this images are either the camera internal stacked images or if this does not exists the first image of a sequence, this depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
+In case of FOC-Bracketing, this images are either the camera internal stacked images, or if this does not exist, the first image of a sequence. This depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
 In case of AEA-Bracketing it is always the first image of a sequence.<br>
 This preview-images makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
 In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single images of a sequence.<br><br>
@@ -208,7 +208,7 @@ TestPics
 call script with:<br>
 `python .\OlyExifSort.py -p C:\\path\\to\\your\\folder`<br>
 
-**Note: use the script at your own risk! The script does not delete anything so therefore it shouldn't be risky at all!**
+**Note: use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
 
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
