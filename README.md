@@ -42,11 +42,16 @@ TestPics:
 ```
 ## After
 The images which do not belong to a sequence are still in the main folder.<br>
-All images which where taken with FFOC-Bracketing are in `[main-folder-name]_FOCs`.
-All images which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.
-There you can see images which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`. This images are either the final stacked images or the first image of a sequence, this depends on your camera settings, i.e. if you enabled the auto stack function for focus bracketing, then you will receive a stacked image.
-This images makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
-In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single images of a sequence.
+All images which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
+All images which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
+There you can see preview-images which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`.<br>
+In case of FOC-Bracketing this images are either the camera internal stacked images or if this does not exists the first image of a sequence, this depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
+In case of AEA-Bracketing it is always the first image of a sequence.<br>
+This preview-images makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
+In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single images of a sequence.<br><br>
+
+**Note:** If there are already sorted images in the main folder, the script starts the numbering with the highest free number.
+
 ```
 TestPics
 │   IMGA2445.ORF
@@ -195,8 +200,16 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
+- clone repository
 - execute: `pip install -r requirements.txt`
-- add `./bin/exiftool.exe` to System-Path 
+- add `[...]/bin/exiftool.exe` to System-Path 
+
+## Usage
+call script with:<br>
+`python .\OlyExifSort.py -p C:\\path\\to\\your\\folder`<br>
+
+**Note: use the script at your own risk! The script does not delete anything so therefore it shouldn't be risky at all!**
+
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
 
