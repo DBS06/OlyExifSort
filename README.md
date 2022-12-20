@@ -195,8 +195,8 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
-- 
-- the path 
+- execute: `pip install -r requirements.txt`
+- add `./bin/exiftool.exe` to System-Path 
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
 
