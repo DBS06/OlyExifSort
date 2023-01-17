@@ -125,15 +125,16 @@ def groupBracketing(metadata):
                 stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
                 e)
 
-            if entry.num == 1 and \
-               len(sequence) > 0 and \
-               entry.file["File:FileName"].split(".")[0] != sequence[0].file["File:FileName"].split(".")[0]:
+            if len(sequence) > 0:
+                if (entry.num == 1 or entry.num != (sequence[-1].num + 1)) and \
+                        len(sequence) > 0 and \
+                        entry.file["File:FileName"].split(".")[0] != sequence[-1].file["File:FileName"].split(".")[0]:
 
-                if sequence[0].brktMode == BrktMode.AEA:
-                    aeaBrkt.append(sequence)
-                if sequence[0].brktMode == BrktMode.FOC:
-                    focBrkt.append(sequence)
-                sequence = list()
+                    if sequence[0].brktMode == BrktMode.AEA:
+                        aeaBrkt.append(sequence)
+                    if sequence[0].brktMode == BrktMode.FOC:
+                        focBrkt.append(sequence)
+                    sequence = list()
 
             if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
                 sequence.append(entry)
@@ -255,49 +256,53 @@ def main_build(args, params):
 
         numOfFiles = next(os.walk(args.path))[2]
         print(f'Number of Files: {len(numOfFiles)}')
-        print(f'scanning image EXIF-Data...')
-        print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
 
-        metadata = et.execute_json(
-            '-filename', '-DriveMode', '-FileType', '-StackedImage', args.path)
+        if len(numOfFiles) != 0:
+            print(f'scanning image EXIF-Data...')
+            print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
 
-        print(f'scanning image EXIF-Data finished!')
+            metadata = et.execute_json(
+                '-filename', '-DriveMode', '-FileType', '-StackedImage', args.path)
 
-        # print(f'{metadata}')
+            print(f'scanning image EXIF-Data finished!')
 
-        if len(metadata) == 0:
-            print(f'no images found!')
+            # print(f'{metadata}')
+
+            if len(metadata) == 0:
+                print(f'no images found!')
+            else:
+                print(f'start grouping images to sequences...')
+
+                aeaBrkt, focBrkt = groupBracketing(metadata)
+
+                print(f'HDR sequences found: ' + str(len(aeaBrkt)))
+                print(f'FOC sequences found: ' + str(len(focBrkt)))
+
+                seqCnt = 0
+                for gr in aeaBrkt:
+                    seqCnt += 1
+                    print(f'AEA #{seqCnt}')
+                    for el in gr:
+                        print(
+                            f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                    print('')
+
+                seqCnt = 0
+                for gr in focBrkt:
+                    seqCnt += 1
+                    print(f'FOC #{seqCnt}')
+                    for el in gr:
+                        print(
+                            f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                    print('')
+
+                if len(aeaBrkt) > 0:
+                    moveBracketing(aeaBrkt, args.path, BrktMode.AEA)
+
+                if len(focBrkt) > 0:
+                    moveBracketing(focBrkt, args.path, BrktMode.FOC)
         else:
-            print(f'start grouping images to sequences...')
-
-            aeaBrkt, focBrkt = groupBracketing(metadata)
-
-            print(f'HDR sequences found: ' + str(len(aeaBrkt)))
-            print(f'FOC sequences found: ' + str(len(focBrkt)))
-
-            seqCnt = 0
-            for gr in aeaBrkt:
-                seqCnt += 1
-                print(f'AEA #{seqCnt}')
-                for el in gr:
-                    print(
-                        f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                print('')
-
-            seqCnt = 0
-            for gr in focBrkt:
-                seqCnt += 1
-                print(f'FOC #{seqCnt}')
-                for el in gr:
-                    print(
-                        f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                print('')
-
-            if len(aeaBrkt) > 0:
-                moveBracketing(aeaBrkt, args.path, BrktMode.AEA)
-
-            if len(focBrkt) > 0:
-                moveBracketing(focBrkt, args.path, BrktMode.FOC)
+            print(f'There are no files in this folder!')
 
 
 def main(argv):
