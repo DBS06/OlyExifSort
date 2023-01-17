@@ -1,29 +1,29 @@
 # OlyExifSort
 
-This Script detects and sorts images which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
+This Script detects and sorts photos which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
 
 ## Usage/Recommended Workflow
-I use the script to identify the image-sequences which where taken with the HDR- and Focus-Bracketing-Mode. I usually copy the images from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with AEA- and HDR-Bracketing-Mode separated. <br>
+I use the script to identify and separate the photo-sequences which where taken with the HDR- and Focus-Bracketing-Mode. I usually copy the photos from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with AEA- and HDR-Bracketing-Mode separated.<br><br>
 **In short I recommend the following workflow**:
-- Create a folder and paste your images which you want to sort inside of this folder.<br>
-**Note**: use a folder name which should be final, because the subfolders will be named like that!<br>
+- Create a folder and paste your photos, which you want to sort, inside of this folder.<br>
+**Note**: Use a folder name which should be final, because the subfolders will be named like that (see "What does this script do" for more information)!<br>
 - Call script with:<br>
-`python .\OlyExifSort.py -p C:\\path\\to\\your\\folder`<br>
+`python .\OlyExifSort.py -p "C:\\path\\to\\your\\folder"`<br>
 - After the script is finished, start with sorting out your photos.<br>
-**Attention**: I recommend to not delete any of the images before you start the script!<br>
+**Attention**: I recommend not to delete any of the photos before you start the script, especially the photos from a HDR- and Focus-Bracketing-Sequences!<br>
 
-**Note: use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
+**Note: Use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
 
 ## What does this script do
 
-This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the images based on the bracketing sequences from AEA- and FOC-Mode.<br>
-**Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes!**<br>
-I never used the rest of the Bracketing-Modes, if someone wants to use/sort other modes, pls write an issue and provide example images, or create a pull-request.<br>
-After the search is completed, the scripts starts to move the images to specific folders. You can see an example here:
+This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the photos based on the bracketing sequences from AEA- and FOC-Mode.<br>
+**Note: Depending on the number of photos, pc performance and storage rw speed this takes some time! Even up to a couple of minutes!**<br>
+I never used the rest of the Bracketing-Modes, if someone wants to use/sort other modes, pls write an issue and provide example photos, or create a pull-request.<br>
+After the search is completed, the scripts starts to move the photos to specific folders. You can see an example here:
 
 ## Before:
 
-All images, which should to be sorted, are in the same folder. It doesn't matter if there are images, which do not belong to a AEA- or FOC-Sequence.
+All photos, which should to be sorted, are in the same folder. It doesn't matter if there are photos, which do not belong to a AEA- or FOC-Sequence.
 ```
 TestPics:
     IMGA2445.ORF
@@ -53,16 +53,16 @@ TestPics:
     [...]
 ```
 ## After
-The images which do not belong to a sequence are still in the main folder.<br>
-All images which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
-All images which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
-There you can see preview-images which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`.<br>
-In case of FOC-Bracketing, this images are either the camera internal stacked images, or if this does not exist, the first image of a sequence. This depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
-In case of AEA-Bracketing it is always the first image of a sequence.<br>
-This preview-images makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
-In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single images of a sequence.<br><br>
+The photos which do not belong to a sequence are still in the main folder.<br>
+All photos which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
+All photos which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
+There you can see preview-photos which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`.<br>
+In case of FOC-Bracketing, this photos are either the camera internal stacked photos, or if this does not exist, the first photo of a sequence. This depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
+In case of AEA-Bracketing it is always the first photo of a sequence.<br>
+This preview-photos makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
+In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single photos of a sequence.<br><br>
 
-**Note:** If there are already sorted images in the main folder, the script starts the numbering with the highest free number.
+**Note:** If there are already sorted photos in the main folder, the script starts the numbering with the highest free number.
 
 ```
 TestPics
