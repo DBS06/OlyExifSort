@@ -1,6 +1,18 @@
 # OlyExifSort
 
-This Script detects and sorts images which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera.
+This Script detects and sorts images which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
+
+## Usage/Recommended Workflow
+I use the script to identify the image-sequences which where taken with the HDR- and Focus-Bracketing-Mode. I usually copy the images from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with AEA- and HDR-Bracketing-Mode separated. <br>
+**In short I recommend the following workflow**:
+- Create a folder and paste your images which you want to sort inside of this folder.<br>
+**Note**: use a folder name which should be final, because the subfolders will be named like that!<br>
+- Call script with:<br>
+`python .\OlyExifSort.py -p C:\\path\\to\\your\\folder`<br>
+- After the script is finished, start with sorting out your photos.<br>
+**Attention**: I recommend to not delete any of the images before you start the script!<br>
+
+**Note: use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
 
 ## What does this script do
 
@@ -203,12 +215,6 @@ TestPics
 - clone or download repository
 - execute: `pip install -r requirements.txt`
 - add `[...]/bin/exiftool.exe` to System-Path 
-
-## Usage
-call script with:<br>
-`python .\OlyExifSort.py -p C:\\path\\to\\your\\folder`<br>
-
-**Note: use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
 
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
