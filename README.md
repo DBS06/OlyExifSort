@@ -212,17 +212,25 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
-- clone or download repository
-- execute: `pip install -r requirements.txt`
-- add `[...]/bin/exiftool.exe` to System-Path 
+### Via Script:
+- clone or download repository.
+- execute: `pip install -r requirements.txt`.
+- I recommend using the exiftool version which I deliver within the package, if this is not whished download exiftool from https://exiftool.org/. Nevertheless the folder where the `exiftool.exe` is (within the script it is under `./bin/exiftool.exe`), must be added to System-Path.
+
+### Via Executable (Windows):
+- download `OlyExifSort_Win.zip` and extract it anywhere.
+- I recommend using the exiftool version which I deliver within the package, if this is not whished download exiftool from https://exiftool.org/. Nevertheless the folder where the `exiftool.exe` is, must be added to System-Path.
 
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
+- Olympus OM-D E-M1 Mark III
+- OM-System OM1
 
 I am not able to test this with different Olympus/OM-System cameras, because I don't have access to another model.
+But I am pretty sure this script works for nearly all of the Olympus/OM-System cameras
 
 ## Nice 2 Have
-- a complied executable
 - an GUI which allows to set some of the settings
 
-If anyone hast time to do this I would really appreciate it!
+## Support
+If you want to support me, I would really happy if you would add me on [500px](https://500px.com/p/dbs06) and/or like my photos :blush:
