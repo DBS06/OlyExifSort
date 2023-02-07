@@ -1,9 +1,21 @@
+
 """
 #!/usr/bin/env python
 OlyExifSort GUI
 """
 
 import wx
+import OlyExifSort
+import sys
+import wx.lib.agw.hyperlink as hl
+
+
+class RedirectText(object):
+    def __init__(self, aWxTextCtrl):
+        self.out = aWxTextCtrl
+
+    def write(self, string):
+        self.out.WriteText(string)
 
 
 class MainFrame(wx.Frame):
@@ -11,42 +23,74 @@ class MainFrame(wx.Frame):
     Main Frame
     """
 
-    path = ""
-
     def __init__(self, *args, **kw):
         # ensure the parent's __init__ is called
-        super(MainFrame, self).__init__(*args, **kw, size=(600, 250))
+        super(MainFrame, self).__init__(*args, **kw, size=(600, 510))
+        MainFrame.SetMinSize(self, size=(600, 500))
+        MainFrame.SetMaxSize(self, size=(600, 500))
 
         # create a panel in the frame
         panel = wx.Panel(self)
 
+        # 1st Line
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         l1 = wx.StaticText(panel, label="Folder:")
-        hbox1.Add(l1, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+        hbox1.Add(l1, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
 
-        self.tcPath = wx.TextCtrl(panel, size=(400, 20))
-        hbox1.Add(self.tcPath, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
-        self.tcPath.Bind(wx.EVT_TEXT, self.OnKeyTyped)
+        self.tcPath = wx.TextCtrl(panel, size=(430, 20))
+        hbox1.Add(self.tcPath, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
 
-        '''
-        # put some text with a larger bold font on it
-        self.stPath = wx.StaticText(panel, label="no path selected")
-        font = self.stPath.GetFont()
-        # font.PointSize += 10
-        font = font.Bold()
-        self.stPath.SetFont(font)
-        
-        sizer.Add(self.stPath, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 25))
-        '''
-
-        # A dialog button
+        # dialog button
         dirDlgBtn = wx.Button(panel, label="Choose Folder")
-        hbox1.Add(dirDlgBtn, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+        hbox1.Add(dirDlgBtn, wx.CENTER | wx.ALIGN_LEFT, 5)
         dirDlgBtn.Bind(wx.EVT_BUTTON, self.onDir)
+
+        # 2nd Line
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        # process button
+        font = wx.Font(wx.FontInfo(14).Bold())
+        self.searchBtn = wx.Button(panel, label="Search Sequences")
+        self.searchBtn.Bind(wx.EVT_BUTTON, self.onSearchSeq)
+        self.searchBtn.SetFont(font)
+        hbox2.Add(self.searchBtn, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+
+        self.moveBtn = wx.Button(panel, label="Move Sequences")
+        self.moveBtn.Bind(wx.EVT_BUTTON, self.onMoveSeq)
+        self.moveBtn.SetFont(font)
+        self.moveBtn.Disable()
+        hbox2.Add(self.moveBtn, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+
+        # 3th Line
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+
+        # process button
+        self.tcOutput = wx.TextCtrl(
+            panel, size=(600, 300), style=wx.TE_MULTILINE | wx.TE_READONLY)
+        hbox3.Add(self.tcOutput, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+
+        # redirect output to log
+        redir = RedirectText(self.tcOutput)
+        sys.stdout = redir
+
+        # 4th line
+
+        hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        # set font  for output
+        fontOutput = wx.Font(8, wx.MODERN, wx.NORMAL,
+                             wx.NORMAL, False, u'Consolas')
+        self.tcOutput.SetFont(fontOutput)
+
+        self.link500px = hl.HyperLinkCtrl(
+            panel, -1, "If you like the script please support me on 500px", URL="https://500px.com/p/dbs06")
+        hbox4.Add(self.link500px, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
 
         # and create a sizer to manage the layout of child widgets
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(hbox1, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(0, 10, 0)
+        sizer.Add(hbox2, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(hbox3, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(hbox4, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
         panel.SetSizer(sizer)
 
         # create a menu bar
@@ -54,7 +98,7 @@ class MainFrame(wx.Frame):
 
         # and a status bar
         self.CreateStatusBar()
-        self.SetStatusText("Welcome to OylExitSort!")
+        self.SetStatusText("Welcome to OlyExitSort!")
 
     def onDir(self, event):
         """
@@ -65,15 +109,34 @@ class MainFrame(wx.Frame):
                            # | wx.DD_CHANGE_DIR
                            )
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            print("You chose %s" % path)
-            # self.stPath.SetLabel("Selected Path: " + path)
-            self.tcPath.SetValue(path)
+            self.tcPath.SetValue(dlg.GetPath())
         dlg.Destroy()
 
-    def OnKeyTyped(self, event):
-        print(event.GetString())
-        path = event.GetString()
+    def onSearchSeq(self, event):
+        """
+        Search for Sequences
+        """
+        self.tcOutput.Clear()
+        self.SetStatusText("Search for Sequences...")
+        self.path = self.tcPath.GetValue()
+        self.aeaBrkt, self.focBrkt = OlyExifSort.executeExifRead(self.path)
+        print("")
+        print("Search for Sequences finished!")
+        self.SetStatusText("Search for Sequences finished!")
+        print("")
+
+        if (len(self.aeaBrkt) > 0 or len(self.focBrkt) > 0):
+            self.moveBtn.Enable()
+
+    def onMoveSeq(self, event):
+        """
+        Move Sequences
+        """
+        if (len(self.aeaBrkt) > 0 or len(self.focBrkt)):
+            self.SetStatusText("Moving Sequences...")
+            OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt)
+            self.SetStatusText("Moving Sequences finished!")
+            self.moveBtn.Disable()
 
     def makeMenuBar(self):
         """

@@ -244,17 +244,20 @@ def moveBracketing(moveList, path, mode):
         print(" ")
 
 
-def main_build(args, params):
+def executeExifRead(path):
+    aeaBrkt = list()
+    focBrkt = list()
+
     with exiftool.ExifTool() as et:
         # SourceFile
         # File:Filename
         # MakerNotes:DriveMode
 
-        if not os.path.exists(args.path):
-            print(f'given path "{args.path}" is invalid!')
+        if not os.path.exists(path):
+            print(f'given path "{path}" is invalid!')
             print(f'aborting!')
 
-        numOfFiles = next(os.walk(args.path))[2]
+        numOfFiles = next(os.walk(path))[2]
         print(f'Number of Files: {len(numOfFiles)}')
 
         if len(numOfFiles) != 0:
@@ -262,11 +265,9 @@ def main_build(args, params):
             print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
 
             metadata = et.execute_json(
-                '-filename', '-DriveMode', '-FileType', '-StackedImage', args.path)
+                '-filename', '-DriveMode', '-FileType', '-StackedImage', path)
 
             print(f'scanning image EXIF-Data finished!')
-
-            # print(f'{metadata}')
 
             if len(metadata) == 0:
                 print(f'no images found!')
@@ -296,13 +297,31 @@ def main_build(args, params):
                             f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
                     print('')
 
-                if len(aeaBrkt) > 0:
-                    moveBracketing(aeaBrkt, args.path, BrktMode.AEA)
-
-                if len(focBrkt) > 0:
-                    moveBracketing(focBrkt, args.path, BrktMode.FOC)
         else:
             print(f'There are no files in this folder!')
+
+    return aeaBrkt, focBrkt
+
+
+def moveSequences(path, aeaBrkt, focBrkt):
+    if len(aeaBrkt) > 0:
+        moveBracketing(aeaBrkt, path, BrktMode.AEA)
+        print("Moving AEA-Bracketing Sequences Finished!")
+        print("")
+
+    if len(focBrkt) > 0:
+        moveBracketing(focBrkt, path, BrktMode.FOC)
+        print("Moving FOC-Bracketing Sequences Finished!")
+        print("")
+
+    print("")
+    print("SUCCESS!")
+
+
+def main_build(args, params):
+    aeaBrkt, focBrkt = executeExifRead(args.path)
+    if (len(aeaBrkt) > 0 or len(focBrkt) > 0):
+        moveSequences(args.path, aeaBrkt, focBrkt)
 
 
 def main(argv):
