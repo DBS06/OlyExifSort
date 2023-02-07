@@ -67,6 +67,15 @@ class BrktSequenceEntry:
     file: list()
 
 
+class ReturnStatus(IntEnum):
+    SUCCESS = 0
+    ERROR = 1
+    INVALID_PATH = 2
+    NO_SEQUENCES_FOUND = 3
+    NO_IMAGES_FOUND = 4
+    NO_FILES = 5
+
+
 def create_build_parser(parser):
     """
     configures/adds the relevant options to the parser
@@ -99,45 +108,47 @@ def groupBracketing(metadata):
     stackedImage = StackedImage.NO
 
     for e in metadata:
-        # extract drive-mode bytes
-        driveModeBytes = [int(k) for k in e["MakerNotes:DriveMode"].split(" ")]
+        if e["File:FileType"] == "ORF" or e["File:FileType"] == "JPG":
+            # extract drive-mode bytes
+            driveModeBytes = [int(k)
+                              for k in e["MakerNotes:DriveMode"].split(" ")]
 
-        # extract stacked-image type
-        for si in StackedImage:
-            match = bool(re.match(si.value, e["MakerNotes:StackedImage"]))
-            if match:
-                stackedImage = si
-                break
+            # extract stacked-image type
+            for si in StackedImage:
+                match = bool(re.match(si.value, e["MakerNotes:StackedImage"]))
+                if match:
+                    stackedImage = si
+                    break
 
-        # set stacked-image type
-        if stackedImage == StackedImage.FocusStacked:
-            sequence.append(BrktSequenceEntry(
-                DriveMode(driveModeBytes[DriveModeBytes.Mode]),
-                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
-                stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
-                e))
+            # set stacked-image type
+            if stackedImage == StackedImage.FocusStacked:
+                sequence.append(BrktSequenceEntry(
+                    DriveMode(driveModeBytes[DriveModeBytes.Mode]),
+                    BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
+                    stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
+                    e))
 
-        # check if image is part of a bracketing sequence
-        if driveModeBytes[DriveModeBytes.Mode] == DriveMode.Bracketing:
-            entry = BrktSequenceEntry(
-                DriveMode(driveModeBytes[DriveModeBytes.Mode]),
-                BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
-                stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
-                e)
+            # check if image is part of a bracketing sequence
+            if driveModeBytes[DriveModeBytes.Mode] == DriveMode.Bracketing:
+                entry = BrktSequenceEntry(
+                    DriveMode(driveModeBytes[DriveModeBytes.Mode]),
+                    BrktMode(driveModeBytes[DriveModeBytes.ModeBits]),
+                    stackedImage, driveModeBytes[DriveModeBytes.ShotNum],
+                    e)
 
-            if len(sequence) > 0:
-                if (entry.num == 1 or entry.num != (sequence[-1].num + 1)) and \
-                        len(sequence) > 0 and \
-                        entry.file["File:FileName"].split(".")[0] != sequence[-1].file["File:FileName"].split(".")[0]:
+                if len(sequence) > 0:
+                    if (entry.num == 1 or entry.num != (sequence[-1].num + 1)) and \
+                            len(sequence) > 0 and \
+                            entry.file["File:FileName"].split(".")[0] != sequence[-1].file["File:FileName"].split(".")[0]:
 
-                    if sequence[0].brktMode == BrktMode.AEA:
-                        aeaBrkt.append(sequence)
-                    if sequence[0].brktMode == BrktMode.FOC:
-                        focBrkt.append(sequence)
-                    sequence = list()
+                        if sequence[0].brktMode == BrktMode.AEA:
+                            aeaBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.FOC:
+                            focBrkt.append(sequence)
+                        sequence = list()
 
-            if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
-                sequence.append(entry)
+                if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
+                    sequence.append(entry)
 
     # Needs to be done to add the last found sequence
     if len(sequence) > 0:
@@ -245,6 +256,7 @@ def moveBracketing(moveList, path, mode):
 
 
 def executeExifRead(path):
+    retStatus = ReturnStatus.ERROR
     aeaBrkt = list()
     focBrkt = list()
 
@@ -254,53 +266,68 @@ def executeExifRead(path):
         # MakerNotes:DriveMode
 
         if not os.path.exists(path):
+            retStatus = ReturnStatus.INVALID_PATH
             print(f'given path "{path}" is invalid!')
             print(f'aborting!')
 
-        numOfFiles = next(os.walk(path))[2]
-        print(f'Number of Files: {len(numOfFiles)}')
-
-        if len(numOfFiles) != 0:
-            print(f'scanning image EXIF-Data...')
-            print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
-
-            metadata = et.execute_json(
-                '-filename', '-DriveMode', '-FileType', '-StackedImage', path)
-
-            print(f'scanning image EXIF-Data finished!')
-
-            if len(metadata) == 0:
-                print(f'no images found!')
-            else:
-                print(f'start grouping images to sequences...')
-
-                aeaBrkt, focBrkt = groupBracketing(metadata)
-
-                print(f'HDR sequences found: ' + str(len(aeaBrkt)))
-                print(f'FOC sequences found: ' + str(len(focBrkt)))
-
-                seqCnt = 0
-                for gr in aeaBrkt:
-                    seqCnt += 1
-                    print(f'AEA #{seqCnt}')
-                    for el in gr:
-                        print(
-                            f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                    print('')
-
-                seqCnt = 0
-                for gr in focBrkt:
-                    seqCnt += 1
-                    print(f'FOC #{seqCnt}')
-                    for el in gr:
-                        print(
-                            f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                    print('')
-
         else:
-            print(f'There are no files in this folder!')
+            numOfFiles = next(os.walk(path))[2]
+            print(f'Number of Files: {len(numOfFiles)}')
 
-    return aeaBrkt, focBrkt
+            if len(numOfFiles) != 0:
+                print(f'scanning image EXIF-Data...')
+                print(f'Please Note: Depending on the number of images, pc performance and storage rw speed this takes some time! Even up to a couple of minutes...')
+
+                metadata = et.execute_json(
+                    '-filename', '-DriveMode', '-FileType', '-StackedImage', path)
+
+                print(f'scanning image EXIF-Data finished!')
+
+                if len(metadata) == 0:
+                    retStatus = ReturnStatus.NO_IMAGES_FOUND
+                    print(f'no images found!')
+                else:
+                    print(f'start grouping images to sequences...')
+
+                    try:
+                        aeaBrkt, focBrkt = groupBracketing(metadata)
+
+                        print(f'HDR sequences found: ' + str(len(aeaBrkt)))
+                        print(f'FOC sequences found: ' + str(len(focBrkt)))
+
+                        if (len(aeaBrkt) > 0 or len(focBrkt)):
+                            retStatus = ReturnStatus.SUCCESS
+                        else:
+                            retStatus = ReturnStatus.NO_SEQUENCES_FOUND
+
+                        seqCnt = 0
+                        for gr in aeaBrkt:
+                            seqCnt += 1
+                            print(f'AEA #{seqCnt}')
+                            for el in gr:
+                                print(
+                                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                            print('')
+
+                        seqCnt = 0
+                        for gr in focBrkt:
+                            seqCnt += 1
+                            print(f'FOC #{seqCnt}')
+                            for el in gr:
+                                print(
+                                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+                            print('')
+                    except KeyError:
+                        print("An KeyError exception occurred!")
+                        retStatus = ReturnStatus.ERROR
+                    except:
+                        print("An exception occurred!")
+                        retStatus = ReturnStatus.ERROR
+            else:
+                retStatus = ReturnStatus.NO_FILES
+                print(f'There are no files in this folder!')
+
+    return retStatus, aeaBrkt, focBrkt
 
 
 def moveSequences(path, aeaBrkt, focBrkt):

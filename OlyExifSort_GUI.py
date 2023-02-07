@@ -8,6 +8,7 @@ import wx
 import OlyExifSort
 import sys
 import wx.lib.agw.hyperlink as hl
+from threading import Thread
 
 
 class RedirectText(object):
@@ -25,9 +26,11 @@ class MainFrame(wx.Frame):
 
     def __init__(self, *args, **kw):
         # ensure the parent's __init__ is called
-        super(MainFrame, self).__init__(*args, **kw, size=(600, 510))
-        MainFrame.SetMinSize(self, size=(600, 500))
-        MainFrame.SetMaxSize(self, size=(600, 500))
+        sizeX = 600
+        sizeY = 510
+        super(MainFrame, self).__init__(*args, **kw, size=(sizeX, sizeY))
+        MainFrame.SetMinSize(self, size=(sizeX, sizeY))
+        MainFrame.SetMaxSize(self, size=(sizeX, sizeY))
 
         # create a panel in the frame
         panel = wx.Panel(self)
@@ -91,6 +94,7 @@ class MainFrame(wx.Frame):
         sizer.Add(hbox2, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
         sizer.Add(hbox3, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
         sizer.Add(hbox4, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(0, 10, 0)
         panel.SetSizer(sizer)
 
         # create a menu bar
@@ -116,27 +120,26 @@ class MainFrame(wx.Frame):
         """
         Search for Sequences
         """
+        self.moveBtn.Disable()
         self.tcOutput.Clear()
         self.SetStatusText("Search for Sequences...")
         self.path = self.tcPath.GetValue()
-        self.aeaBrkt, self.focBrkt = OlyExifSort.executeExifRead(self.path)
-        print("")
-        print("Search for Sequences finished!")
-        self.SetStatusText("Search for Sequences finished!")
-        print("")
-
-        if (len(self.aeaBrkt) > 0 or len(self.focBrkt) > 0):
-            self.moveBtn.Enable()
+        # create a thread
+        thread = Thread(target=self.searchSequenceTask)
+        # run the thread
+        thread.start()
 
     def onMoveSeq(self, event):
         """
         Move Sequences
         """
         if (len(self.aeaBrkt) > 0 or len(self.focBrkt)):
+            self.searchBtn.Disable()
             self.SetStatusText("Moving Sequences...")
             OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt)
             self.SetStatusText("Moving Sequences finished!")
             self.moveBtn.Disable()
+            self.searchBtn.Enable()
 
     def makeMenuBar(self):
         """
@@ -189,6 +192,29 @@ class MainFrame(wx.Frame):
         wx.MessageBox("Written by DBS06\nIf you want to support me, I would really happy if you would add me on 500px and/or like my photos\nhttps://500px.com/p/dbs06 ",
                       "About OlyExifSort",
                       wx.OK | wx.ICON_INFORMATION)
+
+    def searchSequenceTask(self):
+        retStatus, self.aeaBrkt, self.focBrkt = OlyExifSort.executeExifRead(
+            self.path)
+        print("")
+        status = ""
+        if (retStatus == OlyExifSort.ReturnStatus.SUCCESS):
+            status = "Search for Sequences finished!"
+            self.moveBtn.Enable()
+        elif (retStatus == OlyExifSort.ReturnStatus.ERROR):
+            status = "Search for Sequences ended with an unknown Error!"
+        elif (retStatus == OlyExifSort.ReturnStatus.INVALID_PATH):
+            status = "Given Path is invalid!"
+        elif (retStatus == OlyExifSort.ReturnStatus.NO_IMAGES_FOUND):
+            status = "No images found in given folder!"
+        elif (retStatus == OlyExifSort.ReturnStatus.NO_FILES):
+            status = "No files found in given folder!"
+        elif (retStatus == OlyExifSort.ReturnStatus.NO_SEQUENCES_FOUND):
+            status = "No AEA- or FOC-Sequences found in given folder!"
+
+        print(status)
+        print("")
+        self.SetStatusText(status)
 
 
 if __name__ == '__main__':
