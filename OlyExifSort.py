@@ -343,7 +343,7 @@ def executeExifRead(path):
                         print(f'AE sequences found: ' + str(len(aeBrkt)))
                         print(f'WB sequences found: ' + str(len(wbBrkt)))
                         print(f'FL sequences found: ' + str(len(flBrkt)))
-                        print(f'MG sequences found: ' + str(len(mfBrkt)))
+                        print(f'MF sequences found: ' + str(len(mfBrkt)))
                         print(f'ISO sequences found: ' + str(len(isoBrkt)))
                         print("")
                         printSequences(aeaBrkt, "HDR")

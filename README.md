@@ -1,6 +1,6 @@
 # OlyExifSort
 
-This Script detects and sorts photos which where taken with AEA/HDR- and Focus-Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
+This Script detects and sorts photos which where taken with any Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
 
 ## Usage/Recommended Workflow
 I use the script to identify and separate the photo-sequences which where taken with the HDR- and Focus-Bracketing-Mode. I usually copy the photos from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with AEA- and HDR-Bracketing-Mode separated.<br><br>
@@ -8,7 +8,14 @@ I use the script to identify and separate the photo-sequences which where taken 
 - Create a folder and paste your photos, which you want to sort, inside of this folder.<br>
 **Note**: Use a folder name which should be final, because the subfolders will be named like that (see "What does this script do" for more information)!<br>
 - Call script with:<br>
-`python .\OlyExifSort.py -p "C:\\path\\to\\your\\folder"`<br>
+`python .\OlyExifSort.py -p "C:\path\to\your\folder"`<br>
+or use the GUI<br>
+`python .\OlyExifSort_GUI.py"`<br>
+or use the corresponding Windows-Executables.<br>
+- GUI:<br>
+  - Select the folder where you want to sort the photos and click on `Search Sequences`
+  - After the search is complete you can see inside the LOG-Output and verify the result.
+  - If everything seems ok, click on `Move Sequences` and the found sequences will be moved
 - After the script is finished, start with sorting out your photos.<br>
 **Attention**: I recommend not to delete any of the photos before you start the script, especially the photos from a HDR- and Focus-Bracketing-Sequences!<br>
 
@@ -23,7 +30,7 @@ After the search is completed, the scripts starts to move the photos to specific
 
 ## Before:
 
-All photos, which should to be sorted, are in the same folder. It doesn't matter if there are photos, which do not belong to a AEA- or FOC-Sequence.
+All photos, which should to be sorted, are in the same folder. It doesn't matter if there are photos, which do not belong to a Bracketing-Sequence.
 ```
 TestPics:
     IMGA2445.ORF
@@ -54,13 +61,19 @@ TestPics:
 ```
 ## After
 The photos which do not belong to a sequence are still in the main folder.<br>
-All photos which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
-All photos which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
-There you can see preview-photos which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx`.<br>
+- All photos which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
+- All photos which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
+- All photos which where taken with AE-Bracketing are in `[main-folder-name]_AEs`.<br>
+- All photos which where taken with WB-Bracketing are in `[main-folder-name]_WBs`.<br>
+- All photos which where taken with FL-Bracketing are in `[main-folder-name]_FLs`.<br>
+- All photos which where taken with MF-Bracketing are in `[main-folder-name]_MFs`.<br>
+- All photos which where taken with ISO-Bracketing are in `[main-folder-name]_ISOs`.<br>
+
+There you can see preview-photos which are named like `[...]_FOC_XXX.xxx` or `[...]_HDR_XXX.xxx` and so on.<br>
 In case of FOC-Bracketing, this photos are either the camera internal stacked photos, or if this does not exist, the first photo of a sequence. This depends on your camera settings, or the sequence was interrupted or unsuccessful.<br>
-In case of AEA-Bracketing it is always the first photo of a sequence.<br>
+In case of AEA-, AE-, WB-, FL-, MF-, ISO-Bracketing-Sequences it is always the first photo of a sequence.<br>
 This preview-photos makes it easier and faster to look through the sequences and to identify which folder has which sequence.<br>
-In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` you will find the single photos of a sequence.<br><br>
+In the folders `[main-folder-name]_FOC_XXX` or `[main-folder-name]_HDR_XXX` and etc. you will find the single photos of a sequence.<br><br>
 
 **Note:** If there are already sorted photos in the main folder, the script starts the numbering with the highest free number.
 
@@ -230,7 +243,7 @@ I am not able to test this with different Olympus/OM-System cameras, because I d
 But I am pretty sure this script works for nearly all of the Olympus/OM-System cameras
 
 ## Nice 2 Have
-- an GUI which allows to set some of the settings
+- sort Interval Sh./Time Lapse Sequences (I wasn't able to differentiate the time-lapse sequences from normal taken photos via EXIF-Infos)
 
 ## Support
 If you want to support me, I would really happy if you would add me on [500px](https://500px.com/p/dbs06) and/or like my photos :blush:
