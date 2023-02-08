@@ -133,10 +133,11 @@ class MainFrame(wx.Frame):
         """
         Move Sequences
         """
-        if (len(self.aeaBrkt) > 0 or len(self.focBrkt)):
+        if (len(self.aeaBrkt) > 0 or len(self.focBrkt) > 0 or len(self.aeBrkt) > 0 or len(self.wbBrkt) > 0 or len(self.flBrkt) > 0 or len(self.mfBrkt) > 0 or len(self.isoBrkt) > 0):
             self.searchBtn.Disable()
             self.SetStatusText("Moving Sequences...")
-            OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt)
+            OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt,
+                                      self.aeBrkt, self.wbBrkt, self.flBrkt, self.mfBrkt, self.isoBrkt)
             self.SetStatusText("Moving Sequences finished!")
             self.moveBtn.Disable()
             self.searchBtn.Enable()
@@ -194,8 +195,9 @@ class MainFrame(wx.Frame):
                       wx.OK | wx.ICON_INFORMATION)
 
     def searchSequenceTask(self):
-        retStatus, self.aeaBrkt, self.focBrkt = OlyExifSort.executeExifRead(
+        retStatus, self.aeaBrkt, self.focBrkt, self.aeBrkt, self.wbBrkt, self.flBrkt, self.mfBrkt, self.isoBrkt = OlyExifSort.executeExifRead(
             self.path)
+
         print("")
         status = ""
         if (retStatus == OlyExifSort.ReturnStatus.SUCCESS):
@@ -210,7 +212,7 @@ class MainFrame(wx.Frame):
         elif (retStatus == OlyExifSort.ReturnStatus.NO_FILES):
             status = "No files found in given folder!"
         elif (retStatus == OlyExifSort.ReturnStatus.NO_SEQUENCES_FOUND):
-            status = "No AEA- or FOC-Sequences found in given folder!"
+            status = "No Bracketing-Sequences found in given folder!"
 
         print(status)
         print("")

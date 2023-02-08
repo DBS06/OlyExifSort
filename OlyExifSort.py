@@ -85,6 +85,7 @@ def create_build_parser(parser):
 
     parser.add_argument("-p", "--path", default="", metavar="<PATH>",
                         help="specifies the path which should be sorted")
+
     return parser
 
 
@@ -104,11 +105,16 @@ def parse_command_line_arguments(argv):
 def groupBracketing(metadata):
     aeaBrkt = list()
     focBrkt = list()
+    aeBrkt = list()
+    wbBrkt = list()
+    flBrkt = list()
+    mfBrkt = list()
+    isoBrkt = list()
     sequence = list()
     stackedImage = StackedImage.NO
 
     for e in metadata:
-        if e["File:FileType"] == "ORF" or e["File:FileType"] == "JPG":
+        if e["File:FileType"] == "ORF" or e["File:FileType"] == "JPEG":
             # extract drive-mode bytes
             driveModeBytes = [int(k)
                               for k in e["MakerNotes:DriveMode"].split(" ")]
@@ -145,6 +151,16 @@ def groupBracketing(metadata):
                             aeaBrkt.append(sequence)
                         if sequence[0].brktMode == BrktMode.FOC:
                             focBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.AE:
+                            aeBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.WB:
+                            wbBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.FL:
+                            flBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.MF:
+                            mfBrkt.append(sequence)
+                        if sequence[0].brktMode == BrktMode.ISO:
+                            isoBrkt.append(sequence)
                         sequence = list()
 
                 if entry.brktMode == BrktMode.AEA or entry.brktMode == BrktMode.FOC:
@@ -156,8 +172,18 @@ def groupBracketing(metadata):
             aeaBrkt.append(sequence)
         if sequence[0].brktMode == BrktMode.FOC:
             focBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.AE:
+            aeBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.WB:
+            wbBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.FL:
+            flBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.MF:
+            mfBrkt.append(sequence)
+        if sequence[0].brktMode == BrktMode.ISO:
+            isoBrkt.append(sequence)
 
-    return aeaBrkt, focBrkt
+    return aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt
 
 
 def moveBracketing(moveList, path, mode):
@@ -168,12 +194,26 @@ def moveBracketing(moveList, path, mode):
     if mode == BrktMode.AEA:
         mainDirLabel = "HDRs"
         subDirLabel = "HDR"
-        print("Move AEA Bracketing Sequences")
-
     if mode == BrktMode.FOC:
         mainDirLabel = "FOCs"
         subDirLabel = "FOC"
-        print("Move AEA Bracketing Sequences")
+    if mode == BrktMode.AE:
+        mainDirLabel = "AEs"
+        subDirLabel = "AE"
+    if mode == BrktMode.WB:
+        mainDirLabel = "WBs"
+        subDirLabel = "WB"
+    if mode == BrktMode.FL:
+        mainDirLabel = "FLs"
+        subDirLabel = "FL"
+    if mode == BrktMode.MF:
+        mainDirLabel = "MFs"
+        subDirLabel = "MF"
+    if mode == BrktMode.ISO:
+        mainDirLabel = "ISOs"
+        subDirLabel = "ISO"
+
+    print("Move %s Bracketing Sequences" % (subDirLabel))
 
     mainDirName = os.path.basename(path)
     targetMainDirName = mainDirName + "_" + mainDirLabel
@@ -259,6 +299,11 @@ def executeExifRead(path):
     retStatus = ReturnStatus.ERROR
     aeaBrkt = list()
     focBrkt = list()
+    aeBrkt = list()
+    wbBrkt = list()
+    flBrkt = list()
+    mfBrkt = list()
+    isoBrkt = list()
 
     with exiftool.ExifTool() as et:
         # SourceFile
@@ -290,33 +335,30 @@ def executeExifRead(path):
                     print(f'start grouping images to sequences...')
 
                     try:
-                        aeaBrkt, focBrkt = groupBracketing(metadata)
+                        aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt = groupBracketing(
+                            metadata)
 
                         print(f'HDR sequences found: ' + str(len(aeaBrkt)))
                         print(f'FOC sequences found: ' + str(len(focBrkt)))
+                        print(f'AE sequences found: ' + str(len(aeBrkt)))
+                        print(f'WB sequences found: ' + str(len(wbBrkt)))
+                        print(f'FL sequences found: ' + str(len(flBrkt)))
+                        print(f'MG sequences found: ' + str(len(mfBrkt)))
+                        print(f'ISO sequences found: ' + str(len(isoBrkt)))
+                        print("")
+                        printSequences(aeaBrkt, "HDR")
+                        printSequences(focBrkt, "FOC")
+                        printSequences(aeBrkt, "AE")
+                        printSequences(wbBrkt, "WB")
+                        printSequences(flBrkt, "FL")
+                        printSequences(mfBrkt, "MF")
+                        printSequences(isoBrkt, "ISO")
 
-                        if (len(aeaBrkt) > 0 or len(focBrkt)):
+                        if (len(aeaBrkt) > 0 or len(focBrkt) > 0 or len(aeBrkt) > 0 or len(wbBrkt) > 0 or len(flBrkt) > 0 or len(mfBrkt) > 0 or len(isoBrkt) > 0):
                             retStatus = ReturnStatus.SUCCESS
                         else:
                             retStatus = ReturnStatus.NO_SEQUENCES_FOUND
 
-                        seqCnt = 0
-                        for gr in aeaBrkt:
-                            seqCnt += 1
-                            print(f'AEA #{seqCnt}')
-                            for el in gr:
-                                print(
-                                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                            print('')
-
-                        seqCnt = 0
-                        for gr in focBrkt:
-                            seqCnt += 1
-                            print(f'FOC #{seqCnt}')
-                            for el in gr:
-                                print(
-                                    f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
-                            print('')
                     except KeyError:
                         print("An KeyError exception occurred!")
                         retStatus = ReturnStatus.ERROR
@@ -327,10 +369,24 @@ def executeExifRead(path):
                 retStatus = ReturnStatus.NO_FILES
                 print(f'There are no files in this folder!')
 
-    return retStatus, aeaBrkt, focBrkt
+    return retStatus, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt
 
 
-def moveSequences(path, aeaBrkt, focBrkt):
+def printSequences(seq, name):
+
+    if len(seq):
+        print(f'# {name} Sequences:')
+    seqCnt = 0
+    for gr in seq:
+        seqCnt += 1
+        print(f'{name} #{seqCnt}')
+        for el in gr:
+            print(
+                f'{el.file["File:FileName"]}: {el.brktMode.name} {el.driveMode.name} #{el.num}')
+        print('')
+
+
+def moveSequences(path, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt):
     if len(aeaBrkt) > 0:
         moveBracketing(aeaBrkt, path, BrktMode.AEA)
         print("Moving AEA-Bracketing Sequences Finished!")
@@ -341,14 +397,57 @@ def moveSequences(path, aeaBrkt, focBrkt):
         print("Moving FOC-Bracketing Sequences Finished!")
         print("")
 
+    if len(aeBrkt) > 0:
+        moveBracketing(aeBrkt, path, BrktMode.AE)
+        print("Moving AE-Bracketing Sequences Finished!")
+        print("")
+
+    if len(wbBrkt) > 0:
+        moveBracketing(wbBrkt, path, BrktMode.WB)
+        print("Moving WB-Bracketing Sequences Finished!")
+        print("")
+
+    if len(flBrkt) > 0:
+        moveBracketing(flBrkt, path, BrktMode.FL)
+        print("Moving FL-Bracketing Sequences Finished!")
+        print("")
+
+    if len(mfBrkt) > 0:
+        moveBracketing(mfBrkt, path, BrktMode.MF)
+        print("Moving MF-Bracketing Sequences Finished!")
+        print("")
+
+    if len(isoBrkt) > 0:
+        moveBracketing(isoBrkt, path, BrktMode.ISO)
+        print("Moving ISO-Bracketing Sequences Finished!")
+        print("")
+
     print("")
     print("SUCCESS!")
 
 
 def main_build(args, params):
-    aeaBrkt, focBrkt = executeExifRead(args.path)
-    if (len(aeaBrkt) > 0 or len(focBrkt) > 0):
-        moveSequences(args.path, aeaBrkt, focBrkt)
+    retStatus, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt = executeExifRead(
+        args.path)
+
+    status = ""
+    if (retStatus == ReturnStatus.SUCCESS):
+        status = "Search for Sequences finished!"
+    elif (retStatus == ReturnStatus.ERROR):
+        status = "Search for Sequences ended with an unknown Error!"
+    elif (retStatus == ReturnStatus.INVALID_PATH):
+        status = "Given Path is invalid!"
+    elif (retStatus == ReturnStatus.NO_IMAGES_FOUND):
+        status = "No images found in given folder!"
+    elif (retStatus == ReturnStatus.NO_FILES):
+        status = "No files found in given folder!"
+    elif (retStatus == ReturnStatus.NO_SEQUENCES_FOUND):
+        status = "No Bracketing-Sequences found in given folder!"
+    print(status)
+
+    if (len(aeaBrkt) > 0 or len(focBrkt) > 0 or len(aeBrkt) > 0 or len(wbBrkt) > 0 or len(flBrkt) > 0 or len(mfBrkt) > 0 or len(isoBrkt) > 0):
+        moveSequences(args.path, aeaBrkt, focBrkt, aeBrkt,
+                      wbBrkt, flBrkt, mfBrkt, isoBrkt)
 
 
 def main(argv):
