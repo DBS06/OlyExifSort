@@ -3,7 +3,7 @@
 This Script detects and sorts photos which where taken with any Bracketing-Mode with an Olympus/OM-System camera. This script is intended to simplify the sort-out process, after you come back from a photo session. See "Usage/Recommended Workflow" for more information
 
 ## Usage/Recommended Workflow
-I use the script to identify and separate the photo-sequences which where taken with the HDR- and Focus-Bracketing-Mode. I usually copy the photos from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with AEA- and HDR-Bracketing-Mode separated.<br><br>
+I use the script to identify and separate the photo-sequences which where taken with one of the Bracketing-Modes (i.e. HDR- and Focus-Bracketing-Mode). I usually copy the photos from a photo session in one folder and name it i.e. "Vienna", then I start the script. After this, I have the "normal" taken photos and the photos taken with one of the Bracketing-Modes separated.<br><br>
 **In short I recommend the following workflow**:
 - Create a folder and paste your photos, which you want to sort, inside of this folder.<br>
 **Note**: Use a folder name which should be final, because the subfolders will be named like that (see "What does this script do" for more information)!<br>
@@ -12,23 +12,23 @@ I use the script to identify and separate the photo-sequences which where taken 
 or use the GUI<br>
 `python .\OlyExifSort_GUI.py"`<br>
 or use the corresponding Windows-Executables.<br>
-- GUI:<br>
+- **GUI (preferred usage)**:<br>
   - Select the folder where you want to sort the photos and click on `Search Sequences`
   - After the search is complete you can see inside the LOG-Output and verify the result.
   - If everything seems ok, click on `Move Sequences` and the found sequences will be moved
 - After the script is finished, start with sorting out your photos.<br>
-**Attention**: I recommend not to delete any of the photos before you start the script, especially the photos from a HDR- and Focus-Bracketing-Sequences!<br>
+**Attention**: I recommend not to delete or sort out any of the photos before you start the script, especially the photos which where taken with on of the Bracketing-Modes! If you have already done this, the script is useless for you, because you already sorted out the photos already manually. At least the Sequences should not be splitted...<br>
 
 **Note: Use the script at your own risk! The script does not delete anything, therefore it shouldn't be risky at all!**
 
 ## What does this script do
 
-This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the photos based on the bracketing sequences from AEA- and FOC-Mode.<br>
+This script extracts with the help of exiftool, the EXIF-Data. In specific it looks only at the `MakerNotes:DriveMode` EXIF-Data and groups the photos based on the Bracketing-Mode.<br>
 **Note: Depending on the number of photos, pc performance and storage rw speed this takes some time! Even up to a couple of minutes!**<br>
-I never used the rest of the Bracketing-Modes, if someone wants to use/sort other modes, pls write an issue and provide example photos, or create a pull-request.<br>
 After the search is completed, the scripts starts to move the photos to specific folders. You can see an example here:
 
-## Before:
+## Example:
+### Before:
 
 All photos, which should to be sorted, are in the same folder. It doesn't matter if there are photos, which do not belong to a Bracketing-Sequence.
 ```
@@ -59,7 +59,7 @@ TestPics:
     IMGA2458.ORF
     [...]
 ```
-## After
+### After
 The photos which do not belong to a sequence are still in the main folder.<br>
 - All photos which where taken with FOC-Bracketing are in `[main-folder-name]_FOCs`.<br>
 - All photos which where taken with AEA-Bracketing are in `[main-folder-name]_HDRs`.<br>
@@ -225,14 +225,22 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
-### Via Script:
+### Via Script (Windows, Mac):
 - clone or download repository.
 - execute: `pip install -r requirements.txt`.
-- I recommend using the exiftool version which I deliver within the package, if this is not whished download exiftool from https://exiftool.org/. Nevertheless the folder where the `exiftool.exe` is (within the script it is under `./bin/exiftool.exe`), must be added to System-Path.
+- I recommend using the exiftool version, which I deliver within the package, if this is not whished or you are using a Mac download exiftool from https://exiftool.org/. Nevertheless the folder of the `exiftool.exe` or binary is (within the script it is under `./bin/exiftool.exe`), must be added to System-Path.
 
 ### Via Executable (Windows):
 - download `OlyExifSort_Win.zip` and extract it anywhere.
-- I recommend using the exiftool version which I deliver within the package, if this is not whished download exiftool from https://exiftool.org/. Nevertheless the folder where the `exiftool.exe` is, must be added to System-Path.
+- I recommend using the exiftool version, which I deliver within the package, if this is not whished download exiftool from https://exiftool.org/. Nevertheless the folder of the `exiftool.exe`, must be added to System-Path.
+
+### Via Executable (Mac)
+- I don't have access to a Mac, therefore I am not able to create an executable for Mac. But if you want to have an executable for Mac please follow this steps (taken from https://datatofish.com/executable-pyinstaller/):
+- `pip install pyinstaller`
+  - For script with GUI:<br>
+  `pyinstaller --onefile OlyExifSort_GUI.py`
+  - For the shell script only:<br>
+  `pyinstaller --onefile OlyExifSort.py`
 
 ## Tested Cameras
 - Olympus OM-D E-M1 Mark II
