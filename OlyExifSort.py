@@ -326,6 +326,9 @@ def executeExifRead(path):
                 metadata = et.execute_json(
                     '-filename', '-DriveMode', '-FileType', '-StackedImage', path)
 
+                # sort metadata list by filename
+                metadata.sort(key=lambda x: x["File:FileName"])
+
                 print(f'scanning image EXIF-Data finished!')
 
                 if len(metadata) == 0:
