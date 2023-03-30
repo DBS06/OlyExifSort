@@ -238,7 +238,7 @@ TestPics
 - I don't have access to a Mac, therefore I am not able to create an executable for Mac. But if you want to have an executable for Mac please follow this steps (taken from https://datatofish.com/executable-pyinstaller/):
 - `pip install pyinstaller`
   - For script with GUI:<br>
-  `pyinstaller --onefile OlyExifSort_GUI.py`
+  `pyinstaller --noconsole --onefile OlyExifSort_GUI.py`
   - For the shell script only:<br>
   `pyinstaller --onefile OlyExifSort.py`
 
