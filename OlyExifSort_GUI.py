@@ -1,6 +1,6 @@
+#!/usr/bin/python3
 
 """
-#!/usr/bin/env python
 OlyExifSort GUI
 """
 
@@ -8,6 +8,7 @@ import wx
 import OlyExifSort
 import sys
 import wx.lib.agw.hyperlink as hl
+import wx.lib.intctrl
 from threading import Thread
 
 
@@ -27,7 +28,7 @@ class MainFrame(wx.Frame):
     def __init__(self, *args, **kw):
         # ensure the parent's __init__ is called
         sizeX = 600
-        sizeY = 510
+        sizeY = 560
         super(MainFrame, self).__init__(*args, **kw, size=(sizeX, sizeY))
         MainFrame.SetMinSize(self, size=(sizeX, sizeY))
         MainFrame.SetMaxSize(self, size=(sizeX, sizeY))
@@ -77,7 +78,49 @@ class MainFrame(wx.Frame):
 
         # 4th line
 
-        hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        hsub1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        lHDR = wx.StaticText(panel, label="HDR Offset: ")
+        self.iHDR = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+
+        hsub1.Add(lHDR, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub1.Add(self.iHDR, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        lFOC = wx.StaticText(panel, label="  FOC Offset: ")
+        self.iFOC = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub1.Add(lFOC, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub1.Add(self.iFOC, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        lAE = wx.StaticText(panel, label="  AE Offset: ")
+        self.iAE = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub1.Add(lAE, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub1.Add(self.iAE, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        lWB = wx.StaticText(panel, label="  WB Offset: ")
+        self.iWB = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub1.Add(lWB, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub1.Add(self.iWB, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        hsub2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        lFL = wx.StaticText(panel, label="FL Offset:  ")
+        self.iFL = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub2.Add(lFL, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub2.Add(self.iFL, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        lMF = wx.StaticText(panel, label="  MF Offset: ")
+        self.iMF = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub2.Add(lMF, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub2.Add(self.iMF, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        lISO = wx.StaticText(panel, label="  ISO Offset: ")
+        self.iISO = wx.lib.intctrl.IntCtrl(panel, size=(1, -1))
+        hsub2.Add(lISO, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+        hsub2.Add(self.iISO, 1, wx.CENTER | wx.ALIGN_LEFT, 5)
+
+        # 5th line
+
+        hbox5 = wx.BoxSizer(wx.HORIZONTAL)
         # set font  for output
         fontOutput = wx.Font(8, wx.MODERN, wx.NORMAL,
                              wx.NORMAL, False, u'Consolas')
@@ -85,7 +128,7 @@ class MainFrame(wx.Frame):
 
         self.link500px = hl.HyperLinkCtrl(
             panel, -1, "If you like the script please support me on 500px", URL="https://500px.com/p/dbs06")
-        hbox4.Add(self.link500px, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+        hbox5.Add(self.link500px, 1, wx.CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
 
         # and create a sizer to manage the layout of child widgets
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -93,7 +136,9 @@ class MainFrame(wx.Frame):
         sizer.Add(0, 10, 0)
         sizer.Add(hbox2, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
         sizer.Add(hbox3, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
-        sizer.Add(hbox4, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(hsub1, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(hsub2, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
+        sizer.Add(hbox5, wx.SizerFlags().Border(wx.TOP | wx.LEFT, 5))
         sizer.Add(0, 10, 0)
         panel.SetSizer(sizer)
 
@@ -120,6 +165,7 @@ class MainFrame(wx.Frame):
         """
         Search for Sequences
         """
+        self.searchBtn.Disable()
         self.moveBtn.Disable()
         self.tcOutput.Clear()
         self.SetStatusText("Search for Sequences...")
@@ -128,6 +174,7 @@ class MainFrame(wx.Frame):
         thread = Thread(target=self.searchSequenceTask)
         # run the thread
         thread.start()
+        self.searchBtn.Enable()
 
     def onMoveSeq(self, event):
         """
@@ -135,9 +182,14 @@ class MainFrame(wx.Frame):
         """
         if (len(self.aeaBrkt) > 0 or len(self.focBrkt) > 0 or len(self.aeBrkt) > 0 or len(self.wbBrkt) > 0 or len(self.flBrkt) > 0 or len(self.mfBrkt) > 0 or len(self.isoBrkt) > 0):
             self.searchBtn.Disable()
+            self.moveBtn.Disable()
             self.SetStatusText("Moving Sequences...")
-            OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt,
-                                      self.aeBrkt, self.wbBrkt, self.flBrkt, self.mfBrkt, self.isoBrkt)
+
+            # create a thread
+            thread = Thread(target=self.moveSequenceTask)
+            # run the thread
+            thread.start()
+
             self.SetStatusText("Moving Sequences finished!")
             self.moveBtn.Disable()
             self.searchBtn.Enable()
@@ -217,6 +269,11 @@ class MainFrame(wx.Frame):
         print(status)
         print("")
         self.SetStatusText(status)
+
+    def moveSequenceTask(self):
+        OlyExifSort.moveSequences(self.path, self.aeaBrkt, self.focBrkt,
+                                  self.aeBrkt, self.wbBrkt, self.flBrkt, self.mfBrkt, self.isoBrkt,
+                                  self.iHDR.GetValue(), self.iFOC.GetValue(), self.iAE.GetValue(), self.iWB.GetValue(), self.iFL.GetValue(), self.iMF.GetValue(), self.iISO.GetValue())
 
 
 if __name__ == '__main__':

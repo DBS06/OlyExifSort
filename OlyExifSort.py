@@ -85,6 +85,20 @@ def create_build_parser(parser):
 
     parser.add_argument("-p", "--path", default="", metavar="<PATH>",
                         help="specifies the path which should be sorted")
+    parser.add_argument("-cHDR", "--countOffsetHDR", default="0", metavar="<count offset>",
+                        help="set the count offset for HDR sequence folders")
+    parser.add_argument("-cFOC", "--countOffsetFOC", default="0", metavar="<count offset>",
+                        help="set the count offset for FOC sequence folders")
+    parser.add_argument("-cAE", "--countOffsetAE", default="0", metavar="<count offset>",
+                        help="set the count offset for AE sequence folders")
+    parser.add_argument("-cWB", "--countOffsetWB", default="0", metavar="<count offset>",
+                        help="set the count offset for WB sequence folders")
+    parser.add_argument("-cFL", "--countOffsetFL", default="0", metavar="<count offset>",
+                        help="set the count offset for FL sequence folders")
+    parser.add_argument("-cMF", "--countOffsetMF", default="0", metavar="<count offset>",
+                        help="set the count offset for MF sequence folders")
+    parser.add_argument("-cISO", "--countOffsetISO", default="0", metavar="<count offset>",
+                        help="set the count offset for ISO sequence folders")
 
     return parser
 
@@ -186,7 +200,7 @@ def groupBracketing(metadata):
     return aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt
 
 
-def moveBracketing(moveList, path, mode):
+def moveBracketing(moveList, path, mode, minCountOffset=0):
 
     mainDirLabel = ""
     subDirLabel = ""
@@ -229,9 +243,11 @@ def moveBracketing(moveList, path, mode):
             os.listdir(targetMainDirPath), subDirNameMask + '*')
         if (len(existingBrktFolders) > 0):
             existingBrktFolders.sort(reverse=True)
-            lastHdrFolder = existingBrktFolders[0]
             moveBrktCountOffset = int(
                 existingBrktFolders[0].replace(subDirNameMask, ''))
+
+    if minCountOffset > moveBrktCountOffset:
+        moveBrktCountOffset = minCountOffset
 
     if not os.path.exists(targetMainDirPath):
         os.makedirs(targetMainDirPath)
@@ -389,39 +405,39 @@ def printSequences(seq, name):
         print('')
 
 
-def moveSequences(path, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt):
+def moveSequences(path, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt, countOffsetHDR=0, countOffsetFOC=0, countOffsetAE=0, countOffsetWB=0, countOffsetFL=0, countOffsetMF=0, countOffsetISO=0):
     if len(aeaBrkt) > 0:
-        moveBracketing(aeaBrkt, path, BrktMode.AEA)
+        moveBracketing(aeaBrkt, path, BrktMode.AEA, int(countOffsetHDR))
         print("Moving AEA-Bracketing Sequences Finished!")
         print("")
 
     if len(focBrkt) > 0:
-        moveBracketing(focBrkt, path, BrktMode.FOC)
+        moveBracketing(focBrkt, path, BrktMode.FOC, int(countOffsetFOC))
         print("Moving FOC-Bracketing Sequences Finished!")
         print("")
 
     if len(aeBrkt) > 0:
-        moveBracketing(aeBrkt, path, BrktMode.AE)
+        moveBracketing(aeBrkt, path, BrktMode.AE, int(countOffsetAE))
         print("Moving AE-Bracketing Sequences Finished!")
         print("")
 
     if len(wbBrkt) > 0:
-        moveBracketing(wbBrkt, path, BrktMode.WB)
+        moveBracketing(wbBrkt, path, BrktMode.WB, int(countOffsetWB))
         print("Moving WB-Bracketing Sequences Finished!")
         print("")
 
     if len(flBrkt) > 0:
-        moveBracketing(flBrkt, path, BrktMode.FL)
+        moveBracketing(flBrkt, path, BrktMode.FL, int(countOffsetFL))
         print("Moving FL-Bracketing Sequences Finished!")
         print("")
 
     if len(mfBrkt) > 0:
-        moveBracketing(mfBrkt, path, BrktMode.MF)
+        moveBracketing(mfBrkt, path, BrktMode.MF, int(countOffsetMF))
         print("Moving MF-Bracketing Sequences Finished!")
         print("")
 
     if len(isoBrkt) > 0:
-        moveBracketing(isoBrkt, path, BrktMode.ISO)
+        moveBracketing(isoBrkt, path, BrktMode.ISO, int(countOffsetISO))
         print("Moving ISO-Bracketing Sequences Finished!")
         print("")
 
@@ -449,8 +465,8 @@ def main_build(args, params):
     print(status)
 
     if (len(aeaBrkt) > 0 or len(focBrkt) > 0 or len(aeBrkt) > 0 or len(wbBrkt) > 0 or len(flBrkt) > 0 or len(mfBrkt) > 0 or len(isoBrkt) > 0):
-        moveSequences(args.path, aeaBrkt, focBrkt, aeBrkt,
-                      wbBrkt, flBrkt, mfBrkt, isoBrkt)
+        moveSequences(args.path, aeaBrkt, focBrkt, aeBrkt, wbBrkt, flBrkt, mfBrkt, isoBrkt,
+                      args.countOffsetHDR, args.countOffsetFOC, args.countOffsetAE, args.countOffsetWB, args.countOffsetFL, args.countOffsetMF, args.countOffsetISO)
 
 
 def main(argv):
