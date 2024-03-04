@@ -2,5 +2,4 @@ PyExifTool==0.5.4
 wxPython==4.2.0
 autopep8==2.0.1
 pycodestyle==2.10.0
-PyExifTool==0.5.4
 tomli==2.0.1

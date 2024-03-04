@@ -225,10 +225,17 @@ TestPics
             IMGP7685.ORF
 ```
 ## Installation
-### Via Script (Windows, Mac):
+### Via Script (Windows, Mac, Linux):
+**Note**: I tested it only for Windows, but it should work for other operation systems as well.
+- Install Python 3.x (see Python https://www.python.org/downloads/)
+- Install wxPython (only needed for GUI) (taken from https://www.wxpython.org/pages/downloads/): <br>
+  `pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`<br>
+  `pip install -U wxPython`
+- Install ExifTool: <br>
+  - I recommend using the exiftool version, which I deliver within the package, if this is not whished or you are using a Mac download exiftool from https://exiftool.org/. Nevertheless the folder of the `exiftool.exe` or binary is (within the script it is under `./bin/exiftool.exe`), must be added to System-Path.
+- Install PyExifTool (https://pypi.org/project/PyExifTool/):<br>
+  `python -m pip install -U pyexiftool`
 - clone or download repository.
-- execute: `pip install -r requirements.txt`.
-- I recommend using the exiftool version, which I deliver within the package, if this is not whished or you are using a Mac download exiftool from https://exiftool.org/. Nevertheless the folder of the `exiftool.exe` or binary is (within the script it is under `./bin/exiftool.exe`), must be added to System-Path.
 
 ### Via Executable (Windows):
 - download `OlyExifSort_Win.zip` and extract it anywhere.
